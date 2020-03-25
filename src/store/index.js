@@ -23,8 +23,7 @@ const actions = {
   },
   updatePublicUser({ state, commit }, diff) {
     if (state.user) {
-      return db
-        .collection("public-users")
+      db.collection("public-users")
         .doc(state.user.uid)
         .update(diff)
         .then(() => {
