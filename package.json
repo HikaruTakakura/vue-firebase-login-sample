@@ -1,5 +1,5 @@
 {
-  "name": "vuefire-signin-sample",
+  "name": "firebase-signin-sample",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "core-js": "^3.6.4",
+    "firebase": "^7.12.0",
     "vue": "^2.6.11",
     "vuex": "^3.1.2"
   },

@@ -1,28 +1,65 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
+  <div class="center">
+    <div>{{ userName }}さん、こんにちは！</div>
+    <div v-if="!user">
+      <span @click="signIn">ログイン</span>
+    </div>
+    <div class="center" v-else>
+      <span @click="signOut">ログアウト</span>
+      <div>
+        <input type="text" v-model="inputName" />
+        <button @click="updatePublicUser">名前を更新</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
-
+import { signIn, signOut } from "@/firebase";
 export default {
-  name: "App",
-  components: {
-    HelloWorld
+  data() {
+    return {
+      inputName: ""
+    };
+  },
+  methods: {
+    signIn,
+    signOut,
+    updatePublicUser() {
+      if (this.user && this.inputName !== "") {
+        this.$store
+          .dispatch("updatePublicUser", {
+            name: this.inputName
+          })
+          .then(() => {
+            this.inputName = "";
+          });
+      }
+    }
+  },
+  computed: {
+    user() {
+      return this.$store.state.user;
+    },
+    publicUser() {
+      return this.$store.state.publicUser;
+    },
+    userName() {
+      // publicUser が存在しない場合も考慮した設計にする
+      return (
+        (this.publicUser && this.publicUser.name) ||
+        (this.user && this.user.displayName) ||
+        "ゲスト"
+      );
+    }
   }
 };
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+<style scoped>
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 </style>
