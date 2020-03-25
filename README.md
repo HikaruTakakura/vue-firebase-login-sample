@@ -1,4 +1,4 @@
-# firebase-signin-sample
+# vue-firebase-signin-sample
 
 ## Project setup
 ```
