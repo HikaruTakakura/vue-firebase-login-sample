@@ -27,10 +27,10 @@ export const createDocObject = doc => {
 };
 
 // https://firebase.google.com/docs/auth/web/google-signin?hl=ja
-export const signIn = async () => {
+export const signIn = () => {
   const provider = new firebase.auth.GoogleAuthProvider();
-  return await firebase.auth().signInWithPopup(provider);
+  return firebase.auth().signInWithPopup(provider);
 };
-export const signOut = async () => {
-  return await firebase.auth().signOut();
+export const signOut = () => {
+  return firebase.auth().signOut();
 };
