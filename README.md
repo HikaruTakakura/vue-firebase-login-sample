@@ -163,3 +163,10 @@ const getters = {
   // ...
 };
 ```
+
+### ストレージのCORS設定
+
+以下を見ながらCORSの設定をする。
+ターミナル（コマンドプロンプト）からインストールするときにいくつか質問されるが、全部空白のままエンターキーをおしてOK。
+
+https://firebase.google.com/docs/storage/web/download-files?hl=ja#cors_configuration
