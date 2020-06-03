@@ -1,7 +1,9 @@
 # vue-firebase-signin-sample
 
 サインインのサンプルです。
+
 ブランチ `1-sign-in-only` ではサインイン機能のみ、
+
 ブランチ `2-user-profiles` ではユーザー情報（名前と画像）の編集のコードがみれます。
 
 ## node_modules のインストール
