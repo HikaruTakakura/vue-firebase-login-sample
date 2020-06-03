@@ -1,13 +1,12 @@
 # vue-firebase-signin-sample
 
-
-## Project setup
+## node_modules のインストール
 ```
 npm install
 ```
 
 
-### firebaseConfig を設定
+## firebaseConfig を設定
 
 `public` リポジトリなので、 `firebaseConfig` を別ファイルに切り分けて `gitignore` してます。
 自分の適当な Firebase プロジェクトの `firebaseConfig` を `@/firebase.js` に貼り付けてください。
@@ -24,7 +23,7 @@ const firebaseConfig = {
 ```
 
 
-### Compiles and hot-reloads for development
+## 開発サーバーの起動
 ```
 npm run serve
 ```
@@ -43,11 +42,9 @@ npm run serve
 firebase.auth().onAuthStateChanged(user => {
   if (user) {
     // サインイン中
-    // public-users コレクションから user.uid に対応するドキュメントを取得する。
+    // user_profiles コレクションから user.uid に対応するドキュメントを取得する。
     //
-    // 初サインインでまだ public-users コレクションにドキュメントがない場合もあるが、
-    // この時点でドキュメントを作成する必要は必ずしも無い。
-    // 他のコードの部分で、public-users がまだ存在しないかもしれないという前提でコードを書く。
+    // 初サインインでまだ user_profiles コレクションにドキュメントがない場合、ドキュメントを作成する。
   } else {
     // サインアウト中
   }
@@ -75,10 +72,10 @@ Vueファイルの中で簡単に使えていい感じ。
 <template>
   <div>
     <div v-if="!user">
-      <span @click="signIn">ログイン</span>
+      <span @click="signIn">サインイン</span>
     </div>
     <div v-else>
-      <span @click="signOut">ログアウト</span>
+      <span @click="signOut">サインアウト</span>
     </div>
   </div>
 </template>
@@ -95,31 +92,32 @@ export default {
 ```
 
 
-### publicUser の更新処理
+### userProfile の更新処理
 
 `store`の`action`に以下のように定義しておく。
 
 ```
 const actions = {
-  updateUser({ commit }, { user, publicUser }) {
-    commit("updateUser", { user, publicUser });
+  // ログイン状態が変化するときに呼び出す
+  setUserAndProfile({ commit }, { user, userProfile }) {
+    commit("setUser", user);
+    commit("setUserProfile", userProfile);
   },
-  updatePublicUser({ state, commit }, diff) {
+  // ユーザーの情報を更新するときに呼び出す
+  updateUserProfile({ state, commit }, userProfileDiff) {
+    // Diff = Difference
+    const userProfile = {
+      ...state.userProfile,
+      ...userProfileDiff
+    };
     if (state.user) {
-      db.collection("public-users")
+      return db
+        .collection("user_profiles")
         .doc(state.user.uid)
-        .update(diff)
+        .set(userProfile)
         .then(() => {
-          commit("updateUser", {
-            user: state.user,
-            publicUser: {
-              ...state.publicUser,
-              ...diff
-            }
-          });
+          commit("setUserProfile", userProfile);
         });
-    } else {
-      throw "エラー！ログインしてません。";
     }
   }
 };
@@ -136,17 +134,12 @@ export default {
     };
   },
   methods: {
-    updatePublicUser() {
-      if (this.user && this.inputName !== "") {
-        this.$store
-          .dispatch("updatePublicUser", {
-            name: this.inputName
-          })
-          .then(() => {
-            this.inputName = "";
-          });
-      }
-    }
+     updateUserName() {
+      // ...
+      this.$store.dispatch("updateUserProfile", {
+        name: this.inputName
+      })
+    },
   }
 };
 </script>
@@ -154,14 +147,22 @@ export default {
 
 このように、コンポーネントに書くコードがすっきりする。
 
-`state`の`publicUser`を、`diff`と合体した値で更新している部分がわかりにくいかも。
+
+### getters で user の情報をまとめる
+
+`state` では `user` と `userProfile` に分かれていて使いづらいので、`getters` で２つを一緒くたにした値をつくる。
 
 ```
-commit("updateUser", {
-  user: state.user,
-  publicUser: {
-    ...state.publicUser,
-    ...diff
-  }
-});
+const getters = {
+  user(state) {
+    return {
+      ...state.user,
+      ...state.userProfile // たとえば state.user.photoURL を state.userProfile.photoURL で上書きできる
+    };
+  },
+  // ...
+};
 ```
+
+
+### サインイン状態の確認

@@ -1,7 +1,7 @@
 import firebase from "firebase/app";
-
 import "firebase/auth";
 import "firebase/firestore";
+import "firebase/storage";
 
 /*
   public リポジトリなので gitignore してます
@@ -14,11 +14,12 @@ import "firebase/firestore";
 */
 import firebaseConfig from "@/firebaseConfig";
 
-const app = firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
 
-export const db = app.firestore();
+export const db = firebase.firestore();
+export const storage = firebase.storage();
 
-// firestore utility methods
+// あると便利な関数を自分で作って export
 export const createDocObject = doc => {
   return {
     id: doc.id,
@@ -31,6 +32,7 @@ export const signIn = () => {
   const provider = new firebase.auth.GoogleAuthProvider();
   return firebase.auth().signInWithPopup(provider);
 };
+
 export const signOut = () => {
   return firebase.auth().signOut();
 };

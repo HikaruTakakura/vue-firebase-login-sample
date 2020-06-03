@@ -8,58 +8,100 @@ Vue.use(Vuex);
 const state = {
   // user のプロパティ・メソッド一覧
   // https://firebase.google.com/docs/reference/js/firebase.User
-  user: null,
-  publicUser: null
+  user: null, // Authentication がもっているユーザー情報
+  // user: {
+  //   uid,
+  //   displayName,
+  //   photoURL,
+  //   ...
+  // }
+  userProfile: null // Firestore がもっているユーザー情報
+  // userProfile: {
+  //   id, // user.uid と一緒
+  //   name,
+  //   photoURL,
+  //   description,
+  //   rank,
+  //   ...
+  // }
 };
+
 const mutations = {
-  updateUser(state, { user, publicUser }) {
+  setUser(state, user) {
     state.user = user;
-    state.publicUser = publicUser;
+  },
+  setUserProfile(state, userProfile) {
+    state.userProfile = userProfile;
   }
 };
+
 const actions = {
-  updateUser({ commit }, { user, publicUser }) {
-    commit("updateUser", { user, publicUser });
+  // ログイン状態が変化するときに呼び出す
+  setUserAndProfile({ commit }, { user, userProfile }) {
+    commit("setUser", user);
+    commit("setUserProfile", userProfile);
   },
-  updatePublicUser({ state, commit }, diff) {
+  // ユーザーの情報を更新するときに呼び出す
+  updateUserProfile({ state, commit }, userProfileDiff) {
+    // Diff = Difference
+    const userProfile = {
+      ...state.userProfile,
+      ...userProfileDiff
+    };
     if (state.user) {
-      db.collection("public-users")
+      return db
+        .collection("user_profiles")
         .doc(state.user.uid)
-        .update(diff)
+        .set(userProfile)
         .then(() => {
-          commit("updateUser", {
-            user: state.user,
-            publicUser: {
-              ...state.publicUser,
-              ...diff
-            }
-          });
+          commit("setUserProfile", userProfile);
         });
-    } else {
-      throw "エラー！ログインしてません。";
     }
+  }
+};
+
+const getters = {
+  user(state) {
+    return {
+      ...state.user,
+      ...state.userProfile // たとえば state.user.photoURL を state.userProfile.photoURL で上書きできる
+    };
+  },
+  isSignedIn(state) {
+    return !!state.user;
   }
 };
 
 const store = new Vuex.Store({
   state,
   mutations,
-  actions
+  actions,
+  getters
 });
 export default store;
 
 // user のログイン状態が変化したら、store を更新
 firebase.auth().onAuthStateChanged(user => {
   if (user) {
-    const userRef = db.collection("public-users").doc(user.uid);
-    userRef.get().then(doc => {
-      const publicUser = doc.exists ? createDocObject(doc) : null;
-      store.dispatch("updateUser", {
+    const profileRef = db.collection("user_profiles").doc(user.uid);
+    profileRef.get().then(doc => {
+      const userProfile = doc.exists
+        ? createDocObject(doc)
+        : {
+            id: user.uid,
+            name: user.displayName,
+            photoURL: user.photoURL
+          };
+      store.dispatch("setUserAndProfile", {
         user,
-        publicUser
+        userProfile
       });
+      if (!doc.exists) {
+        // はじめてのログインなので、 userProfile を firestore に保存
+        profileRef.set(userProfile);
+      }
     });
   } else {
-    store.dispatch("updateUser", { user: null, publicUser: null });
+    store.dispatch("setUserAndProfile", { user: null, userProfile: null });
   }
 });
