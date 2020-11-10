@@ -1,7 +1,6 @@
 import Vue from "vue"
 import Vuex from "vuex"
 import firebase from "firebase"
-import { db, createDocObject } from "@/firebase"
 
 Vue.use(Vuex)
 
@@ -49,7 +48,8 @@ const actions = {
       ...userProfileDiff,
     }
     if (state.user) {
-      return db
+      return firebase
+        .firestore()
         .collection("user_profiles")
         .doc(state.user.uid)
         .set(userProfile)
@@ -67,6 +67,9 @@ const getters = {
       ...state.userProfile, // たとえば state.user.photoURL を state.userProfile.photoURL で上書きできる
     }
   },
+  userName(state, getters) {
+    return getters.user.name || getters.user.displayName || "ゲスト"
+  },
   isSignedIn(state) {
     return !!state.user
   },
@@ -83,23 +86,29 @@ export default store
 // user のログイン状態が変化したら、store を更新
 firebase.auth().onAuthStateChanged(user => {
   if (user) {
-    const profileRef = db.collection("user_profiles").doc(user.uid)
-    profileRef.get().then(doc => {
-      const userProfile = doc.exists
-        ? createDocObject(doc)
-        : {
-            id: user.uid,
-            name: user.displayName,
-            photoURL: user.photoURL,
-          }
+    const userProfileRef = firebase
+      .firestore()
+      .collection("user_profiles")
+      .doc(user.uid)
+    userProfileRef.get().then(doc => {
+      let userProfile = {
+        id: user.uid,
+        name: user.displayName,
+        photoURL: user.photoURL,
+      }
+      if (doc.exists) {
+        // doc.data() でドキュメントの内容（フィールドの一覧）をとりだせる
+        // id は doc.id でとりだして、 userProfile にくっつける
+        userProfile = doc.data()
+        userProfile.id = doc.id
+      } else {
+        // はじめてのログインなので、 userProfile を firestore に保存
+        userProfileRef.set(userProfile)
+      }
       store.dispatch("setUserAndProfile", {
         user,
         userProfile,
       })
-      if (!doc.exists) {
-        // はじめてのログインなので、 userProfile を firestore に保存
-        profileRef.set(userProfile)
-      }
     })
   } else {
     store.dispatch("setUserAndProfile", { user: null, userProfile: null })
