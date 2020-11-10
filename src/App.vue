@@ -5,10 +5,10 @@
 </template>
 
 <script>
-import UserAuth from "@/components/UserAuth.vue";
+import UserAuth from "@/components/UserAuth.vue"
 export default {
   components: {
-    UserAuth
-  }
-};
+    UserAuth,
+  },
+}
 </script>

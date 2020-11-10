@@ -11,29 +11,29 @@
 </template>
 
 <script>
-import { signIn, signOut } from "@/firebase";
+import { signIn, signOut } from "@/firebase"
 
 export default {
   data() {
     return {
       inputName: "",
-      inputImage: null
-    };
+      inputImage: null,
+    }
   },
   methods: {
     signIn,
-    signOut
+    signOut,
   },
   computed: {
     user() {
       // getters の user なのがポイント！
-      return this.$store.getters.user;
+      return this.$store.getters.user
     },
     userName() {
-      return this.user.name || this.user.displayName || "ゲスト";
-    }
-  }
-};
+      return this.user.name || this.user.displayName || "ゲスト"
+    },
+  },
+}
 </script>
 
 <style scoped>

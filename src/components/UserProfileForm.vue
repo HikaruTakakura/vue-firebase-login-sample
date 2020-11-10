@@ -15,14 +15,14 @@
 </template>
 
 <script>
-import { storage } from "@/firebase";
+import { storage } from "@/firebase"
 
 export default {
   computed: {
     user() {
       // getters の user なのがポイント！
-      return this.$store.getters.user;
-    }
+      return this.$store.getters.user
+    },
   },
   methods: {
     updateUserName() {
@@ -34,12 +34,12 @@ export default {
         this.$store
           .dispatch("updateUserProfile", { name: this.inputName })
           .then(() => {
-            this.inputName = "";
-          });
+            this.inputName = ""
+          })
       }
     },
     changeFile(e) {
-      this.inputImage = e.target.files[0];
+      this.inputImage = e.target.files[0]
     },
     updateUserImage() {
       if (!this.inputImage) {
@@ -49,18 +49,18 @@ export default {
       } else {
         // アップロード先を指定する
         // ファイル名がかぶらないように、 user.id を先頭につける
-        const fileName = this.user.id + "_" + this.inputImage.name;
-        const photoRef = storage.ref("/user_photos/" + fileName);
+        const fileName = this.user.id + "_" + this.inputImage.name
+        const photoRef = storage.ref("/user_photos/" + fileName)
         photoRef
           .put(this.inputImage)
           .then(() => photoRef.getDownloadURL())
           .then(photoURL => {
-            this.$store.dispatch("updateUserProfile", { photoURL });
-          });
+            this.$store.dispatch("updateUserProfile", { photoURL })
+          })
       }
-    }
-  }
-};
+    },
+  },
+}
 </script>
 
 <style lang="scss" scoped></style>
